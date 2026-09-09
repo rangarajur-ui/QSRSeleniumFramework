@@ -1,33 +1,33 @@
 package pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
 import base.BasePage;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 
 public class CatalogPage extends BasePage {
 
-    // --- Static, page-level locators (only one instance on the page) ---
-    private By searchInput = By.xpath("//input[@placeholder='Search menu...']");
-    private By restaurantName = By.xpath("//h1[contains(@class,'heroRestaurantName')]");
-    private By restaurantAddress = By.xpath("//span[contains(@class,'address')]");
-    private By cartSummaryBar = By.xpath("//div[contains(@class,'cartButtonContainer')]");
-    private By viewCartButton = By.xpath("//div[contains(@class,'viewButton')]");
-    private By cartItemCountText = By.xpath("//span[contains(@class,'itemCount')]");
-
-    // Customization popup (only one open at a time)
-    private By customizationCloseBtn = By.xpath("//button[@aria-label='Close']");
-    private By popupAddItemBtn = By.xpath("//button[contains(@class,'addButton') and normalize-space()='Add item']");
+    private final By searchInput = By.xpath("//input[@placeholder='Search menu...']");
+    private final By restaurantName = By.xpath("//h1[contains(@class,'heroRestaurantName')]");
+    private final By restaurantAddress = By.xpath("//span[contains(@class,'address')]");
+    private final By cartSummaryBar = By.xpath("//div[contains(@class,'cartButtonContainer')]");
+    private final By viewCartButton = By.xpath("//div[contains(@class,'viewButton')]");
+    private final By cartItemCountText = By.xpath("//span[contains(@class,'itemCount')]");
+    private final By customizationCloseBtn = By.xpath("//button[@aria-label='Close']");
 
     public CatalogPage(WebDriver driver) {
         super(driver);
     }
 
-    // ---------- Page-level actions ----------
-
     public String getRestaurantName() {
         return getText(restaurantName);
+    }
+
+    public String getRestaurantAddress() {
+        return getText(restaurantAddress);
+    }
+
+    public boolean isSearchDisplayed() {
+        return isDisplayed(searchInput);
     }
 
     public void searchMenu(String query) {
@@ -35,79 +35,40 @@ public class CatalogPage extends BasePage {
     }
 
     public void selectCategory(String categoryName) {
-        By categoryTab = By.xpath(
+        click(By.xpath(
                 "//button[contains(@class,'categoryTab')]//span[normalize-space()='" + categoryName + "']"
-        );
-        click(categoryTab);
+        ));
     }
 
-    // ---------- Per-item, dynamic locators ----------
-
-    private By itemCard(String itemName) {
-        return By.xpath(
-                "//h3[normalize-space()='" + itemName + "']/ancestor::div[contains(@class,'menuItem')]"
-        );
+    public boolean isItemDisplayed(String itemName) {
+        return isPresent(itemCard(itemName));
     }
 
     public String getItemPrice(String itemName) {
-        By priceLocator = By.xpath(
-                itemCard(itemName).toString().replace("By.xpath: ", "")
-                        + "//p[contains(@class,'itemPrice')]"
-        );
-        return getText(priceLocator);
+        return getText(By.xpath(itemCardXpath(itemName) + "//p[contains(@class,'itemPrice')]"));
     }
 
     public void addItemToCart(String itemName) {
-        By addButton = By.xpath(
-                "//h3[normalize-space()='" + itemName + "']"
-                        + "/ancestor::div[contains(@class,'menuItem')]"
-                        + "//button[contains(@class,'addButton')]"
-        );
-        click(addButton);
+        click(By.xpath(itemCardXpath(itemName) + "//button[contains(@class,'addButton')]"));
     }
 
     public void increaseQuantity(String itemName) {
-        By plusButton = By.xpath(
-                "//h3[normalize-space()='" + itemName + "']"
-                        + "/ancestor::div[contains(@class,'menuItem')]"
-                        + "//div[contains(@class,'quantityControl')]//button[normalize-space()='+']"
-        );
-        click(plusButton);
+        click(By.xpath(itemCardXpath(itemName)
+                + "//div[contains(@class,'quantityControl')]//button[normalize-space()='+']"));
     }
 
     public void decreaseQuantity(String itemName) {
-        By minusButton = By.xpath(
-                "//h3[normalize-space()='" + itemName + "']"
-                        + "/ancestor::div[contains(@class,'menuItem')]"
-                        + "//div[contains(@class,'quantityControl')]//button[normalize-space()='-']"
-        );
-        click(minusButton);
+        click(By.xpath(itemCardXpath(itemName)
+                + "//div[contains(@class,'quantityControl')]//button[normalize-space()='-']"));
     }
 
     public String getItemQuantity(String itemName) {
-        By quantitySpan = By.xpath(
-                "//h3[normalize-space()='" + itemName + "']"
-                        + "/ancestor::div[contains(@class,'menuItem')]"
-                        + "//span[contains(@class,'quantity')]"
-        );
-        return getText(quantitySpan);
+        return getText(By.xpath(itemCardXpath(itemName) + "//span[contains(@class,'quantity')]"));
     }
 
-    // Opens the customization popup by clicking the item's image
     public void openItemCustomization(String itemName) {
-        By itemImage = By.xpath(
-                "//h3[normalize-space()='" + itemName + "']"
-                        + "/ancestor::div[contains(@class,'menuItem')]"
-                        + "//img[@alt='" + itemName + "']"
-        );
-        click(itemImage);
+        click(By.xpath(itemCardXpath(itemName) + "//img[@alt='" + itemName + "']"));
     }
-
-
-
-
-
-    // ---------- Cart summary bar ----------
 
     public String getCartItemCountText() {
         return getText(cartItemCountText);
@@ -120,54 +81,46 @@ public class CatalogPage extends BasePage {
     }
 
     public boolean isCartSummaryBarDisplayed() {
-        try {
-            return driver.findElements(cartSummaryBar).size() > 0;
-        } catch (Exception e) {
-            return false;
-        }
+        return isPresent(cartSummaryBar);
     }
 
-    // --- Customization: check if an item supports it ---
     public boolean isItemCustomizable(String itemName) {
-        By customisableLabel = By.xpath(
-                "//h3[normalize-space()='" + itemName + "']"
-                        + "/ancestor::div[contains(@class,'menuItem')]"
-                        + "//p[contains(@class,'customisable')]"
-        );
-        return driver.findElements(customisableLabel).size() > 0;
+        return isPresent(By.xpath(itemCardXpath(itemName) + "//p[contains(@class,'customisable')]"));
     }
 
-    // --- Customization popup: group + option level ---
     public String getGroupTitle(int groupIndex) {
-        By groupTitle = By.xpath(
+        return getText(By.xpath(
                 "(//div[contains(@class,'customizationGroup')])[" + groupIndex + "]//h3[contains(@class,'groupTitle')]"
-        );
-        return getText(groupTitle);
+        ));
     }
 
     public void selectCustomizationOption(String optionName) {
-        By optionCheckbox = By.xpath(
+        click(By.xpath(
                 "//span[contains(@class,'optionName') and normalize-space()='" + optionName + "']"
                         + "/ancestor::label//div[contains(@class,'checkbox')]"
-        );
-        click(optionCheckbox);
+        ));
     }
 
     public String getOptionPrice(String optionName) {
-        By optionPrice = By.xpath(
+        return getText(By.xpath(
                 "//span[contains(@class,'optionName') and normalize-space()='" + optionName + "']"
                         + "/ancestor::label//span[contains(@class,'optionPrice')]"
-        );
-        return getText(optionPrice);
+        ));
     }
 
     public void closeCustomizationPopup() {
-        click(customizationCloseBtn); // already defined earlier
+        click(customizationCloseBtn);
     }
 
-    // Popup's own "Add item" button — different footer than the main list's Add
     public void clickAddItemInPopup() {
-        By addItemBtn = By.xpath("//button[contains(@class,'addButton') and normalize-space()='Add item']");
-        click(addItemBtn);
+        click(By.xpath("//button[contains(@class,'addButton') and normalize-space()='Add item']"));
+    }
+
+    private By itemCard(String itemName) {
+        return By.xpath(itemCardXpath(itemName));
+    }
+
+    private String itemCardXpath(String itemName) {
+        return "//h3[normalize-space()='" + itemName + "']/ancestor::div[contains(@class,'menuItem')]";
     }
 }

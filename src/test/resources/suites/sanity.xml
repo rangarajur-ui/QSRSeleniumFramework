@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="QSR-Sanity" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.TestListener"/>
+    </listeners>
+
+    <test name="SanityChecks">
+        <groups>
+            <run>
+                <include name="sanity"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="tests.CatalogApiHealthTest"/>
+            <class name="tests.LandingPageTest"/>
+            <class name="tests.CatalogPageTest"/>
+            <class name="tests.CustomerDetailsTest"/>
+            <class name="tests.PaymentSummaryTest"/>
+        </classes>
+    </test>
+</suite>

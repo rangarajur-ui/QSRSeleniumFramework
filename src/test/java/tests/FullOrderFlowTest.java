@@ -1,92 +1,76 @@
 package tests;
 
 import base.BaseTest;
+import constants.TestData;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import pages.CatalogPage;
 import pages.CustomerDetailsPage;
 import pages.OrderCompletionPage;
 import pages.PaymentSummaryPage;
-import utils.ScreenshotUtils;
+import utils.ReportLogger;
 
 public class FullOrderFlowTest extends BaseTest {
 
-    @Test
+    @Test(groups = {"e2e", "regression", "payment"},
+            description = "End-to-end: catalog → customer details → tip → card payment → order confirmation")
     public void verifyFullOrderFlowEndToEnd() {
+        logStep("Open catalog from QR / welcome screen");
+        CatalogPage catalogPage = openCatalog();
+        ReportLogger.screenshot(driver, "01_LandingOrCatalog");
 
-        // ---------- Step 1: Landing Page ----------
-        if (landingPage.isWelcomeScreenDisplayed()) {
-            String welcomeMessage = landingPage.getWelcomeMessage();
-            System.out.println("Welcome message: " + welcomeMessage);
-            Assert.assertTrue(welcomeMessage.contains("table"), "Landing page did not show table info");
-            landingPage.clickStartYourOrder();
-        } else {
-            System.out.println("Welcome screen not shown — table likely has an active order already.");
-        }
-        ScreenshotUtils.captureScreenshot(driver, "01_LandingPage");
-
-        // ---------- Step 2: Catalog Page ----------
-        CatalogPage catalogPage = new CatalogPage(driver);
-        String itemName = "Chicken Tikka Biryani (Boneless)";
-
-        String price = catalogPage.getItemPrice(itemName);
-        System.out.println("Item price: " + price);
-
-        catalogPage.addItemToCart(itemName);
-        String qty = catalogPage.getItemQuantity(itemName);
-        System.out.println("Quantity after add: " + qty);
+        logStep("Add " + TestData.MENU_ITEM + " to cart");
+        String price = catalogPage.getItemPrice(TestData.MENU_ITEM);
+        ReportLogger.info("Item price: " + price);
+        catalogPage.addItemToCart(TestData.MENU_ITEM);
+        String qty = catalogPage.getItemQuantity(TestData.MENU_ITEM);
         Assert.assertEquals(qty, "1", "Quantity did not update after adding item");
+        ReportLogger.pass("Cart quantity is 1");
+        ReportLogger.screenshot(driver, "02_Catalog_ItemAdded");
 
-        ScreenshotUtils.captureScreenshot(driver, "02_CatalogPage_ItemAdded");
-
-        // ---------- Step 3: View Cart -> Customer Details ----------
+        logStep("Open customer details from View Cart");
         CustomerDetailsPage detailsPage = catalogPage.clickViewCart();
-
         Assert.assertFalse(detailsPage.isProceedEnabled(), "Proceed should start disabled");
-        detailsPage.enterName("Rangaraju R");
-        detailsPage.enterMobileNumber("501234567");
+
+        logStep("Enter customer name and mobile");
+        detailsPage.fillCustomerDetails(TestData.CUSTOMER_NAME, TestData.CUSTOMER_MOBILE);
         Assert.assertTrue(detailsPage.isProceedEnabled(), "Proceed should enable after valid input");
+        ReportLogger.pass("Customer details accepted");
+        ReportLogger.screenshot(driver, "03_CustomerDetails");
 
-        ScreenshotUtils.captureScreenshot(driver, "03_CustomerDetailsPage_Filled");
-
-        // ---------- Step 4: Proceed -> Payment Summary Page ----------
+        logStep("Open payment summary and bill details");
         PaymentSummaryPage paymentPage = detailsPage.clickProceed();
         paymentPage.openBillDetails();
-
-
         String totalPay = paymentPage.getTotalPay();
-        System.out.println("Total pay before tip: " + totalPay);
+        ReportLogger.info("Total pay before tip: " + totalPay);
+        Assert.assertFalse(totalPay.isBlank(), "Total pay should be visible");
+        paymentPage.closeBillDetails();
 
-        paymentPage.clickcloseviewbill();
-
+        logStep("Add AED 10 tip");
         paymentPage.selectTenDirhamTip();
-        ScreenshotUtils.captureScreenshot(driver, "04_PaymentSummaryPage_TipAdded");
+        ReportLogger.screenshot(driver, "04_Payment_TipAdded");
 
-        // ---------- Step 5: Place Order -> Payment Gateway ----------
-        paymentPage.clickchangepayment();
-        paymentPage.clickdebitorcredit();
-
-
+        logStep("Pay with test debit/credit card");
+        paymentPage.clickChangePayment();
+        paymentPage.selectDebitOrCreditCard();
         paymentPage.switchToPaymentFrame();
-        paymentPage.enterCardDetails("4000 0000 0000 0002", "1230", "123");
-        ScreenshotUtils.captureScreenshot(driver, "05_PaymentGateway_CardEntered");
-
+        paymentPage.enterCardDetails(TestData.CARD_NUMBER, TestData.CARD_EXPIRY, TestData.CARD_CVV);
+        ReportLogger.screenshot(driver, "05_Payment_CardEntered");
         paymentPage.clickPayButton();
-
-        // NOTE: we don't yet know if payment navigates away or updates in-page.
-        // Leaving this commented until we confirm actual behavior:
         paymentPage.switchBackToMainPage();
 
-        ScreenshotUtils.captureScreenshot(driver, "06_PaymentCompletion");
-
-        OrderCompletionPage orderpage = new OrderCompletionPage(driver);
-        String brandN = orderpage.getBrandName();
-
-        String orderID = orderpage.getOrderId();
-        orderpage.openBillDetails();
-        System.out.println(orderID);
-        System.out.println("Brand " + brandN);
-
-        System.out.println("Full order flow completed. Current URL: " + driver.getCurrentUrl());
+        logStep("Verify order confirmation");
+        OrderCompletionPage orderPage = new OrderCompletionPage(driver);
+        Assert.assertTrue(orderPage.waitForOrderCompletion(), "Order confirmation did not appear after payment");
+        String brandName = orderPage.getBrandName();
+        String orderId = orderPage.getOrderId();
+        ReportLogger.info("Brand: " + brandName);
+        ReportLogger.info("Order ID: " + orderId);
+        Assert.assertFalse(brandName.isBlank(), "Brand name should be shown on confirmation");
+        Assert.assertFalse(orderId.isBlank(), "Order ID should be shown on confirmation");
+        orderPage.openBillDetails();
+        ReportLogger.pass("Full order flow completed. Order ID: " + orderId);
+        ReportLogger.screenshot(driver, "06_OrderCompletion");
+        ReportLogger.info("Current URL: " + driver.getCurrentUrl());
     }
 }

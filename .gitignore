@@ -1,21 +1,45 @@
 # Compiled output
 target/
+bin/
 *.class
+*.jar
+*.war
+*.ear
 
-# IDE files
-.idea/
-*.iml
-.vscode/
-
-# OS files
-.DS_Store
-
-# Test reports & screenshots (generated fresh each run — no need to version them)
-/reports/
-/test-output/
+# Test reports & screenshots (generated every run)
+reports/
+test-output/
+screenshots/
+surefire-reports/
 
 # Logs
 *.log
+logs/
+hs_err_pid*
 
-# Maven wrapper (optional, keep if you don't use it)
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven wrapper (keep if the team uses it)
 .mvn/
+!/.mvn/wrapper/maven-wrapper.properties
+
+# Local driver binaries accidentally dropped in the repo
+chromedriver*
+geckodriver*
+msedgedriver*
+
+# Backup / merge leftovers
+*.orig
+*.bak
+*~

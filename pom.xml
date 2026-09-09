@@ -7,29 +7,32 @@
     <groupId>QSR</groupId>
     <artifactId>QSRSeleniumFramework</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <name>QSR Selenium Framework</name>
+    <description>Page Object Model framework for QSR table-ordering (Selenium + Java + TestNG)</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Override from Jenkins: -DsuiteXmlFile=src/test/resources/suites/sanity.xml -->
+        <suiteXmlFile>testng.xml</suiteXmlFile>
+        <browser>chrome</browser>
+        <headless>false</headless>
+        <testerName>Rangaraju R</testerName>
+        <environment>QA</environment>
     </properties>
 
     <dependencies>
-        <!-- UI automation -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>4.24.0</version>
         </dependency>
-
-        <!-- Auto-downloads the right browser driver binary -->
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
             <version>5.9.2</version>
         </dependency>
-
-        <!-- Decodes QR code images into the URL/text they encode -->
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
@@ -40,42 +43,36 @@
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
         </dependency>
-
-        <!-- Test runner: annotations, assertions, data providers, parallel execution -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>7.10.2</version>
         </dependency>
-
-        <!-- For hitting your catalog/offers APIs directly -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>5.5.0</version>
         </dependency>
-
-        <!-- HTML test reports -->
         <dependency>
             <groupId>com.aventstack</groupId>
             <artifactId>extentreports</artifactId>
             <version>5.1.2</version>
         </dependency>
-
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.16.1</version>
         </dependency>
-
-        <!-- Reading/writing Excel for data-driven tests -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.3.0</version>
         </dependency>
-
-        <!-- Logging -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.24.0</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
@@ -85,15 +82,29 @@
 
     <build>
         <plugins>
-            <!-- Tells Maven HOW to run TestNG tests via `mvn test` -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.0</version>
                 <configuration>
                     <suiteXmlFiles>
-                        <suiteXmlFile>testng.xml</suiteXmlFile>
+                        <suiteXmlFile>${suiteXmlFile}</suiteXmlFile>
                     </suiteXmlFiles>
+                    <systemPropertyVariables>
+                        <browser>${browser}</browser>
+                        <headless>${headless}</headless>
+                        <testerName>${testerName}</testerName>
+                        <environment>${environment}</environment>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>

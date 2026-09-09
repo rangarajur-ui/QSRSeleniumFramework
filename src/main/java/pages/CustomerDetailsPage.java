@@ -1,19 +1,23 @@
 package pages;
 
+import base.BasePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import base.BasePage;
 
 public class CustomerDetailsPage extends BasePage {
 
-    private By nameInput = By.id("userdetail-name");
-    private By phoneInput = By.id("userdetail-phone");
-    private By countryCodeButton = By.xpath("//button[contains(@class,'countryCodeButton')]");
-    private By countrySearchInput = By.xpath("//input[contains(@class,'searchInput')]");
-    private By proceedButton = By.xpath("//button[contains(@class,'proceedButton')]");
+    private final By nameInput = By.id("userdetail-name");
+    private final By phoneInput = By.id("userdetail-phone");
+    private final By countryCodeButton = By.xpath("//button[contains(@class,'countryCodeButton')]");
+    private final By countrySearchInput = By.xpath("//input[contains(@class,'searchInput')]");
+    private final By proceedButton = By.xpath("//button[contains(@class,'proceedButton')]");
 
     public CustomerDetailsPage(WebDriver driver) {
         super(driver);
+    }
+
+    public boolean isNameFieldDisplayed() {
+        return isDisplayed(nameInput);
     }
 
     public void enterName(String name) {
@@ -24,14 +28,15 @@ public class CustomerDetailsPage extends BasePage {
         type(phoneInput, number);
     }
 
+    public void fillCustomerDetails(String name, String mobile) {
+        enterName(name);
+        enterMobileNumber(mobile);
+    }
+
     public void selectCountryCode(String code) {
         click(countryCodeButton);
         type(countrySearchInput, code);
-
-        By matchingOption = By.xpath(
-                "//div[contains(@class,'countryList')]//button[normalize-space()='" + code + "']"
-        );
-        click(matchingOption);
+        click(By.xpath("//div[contains(@class,'countryList')]//button[normalize-space()='" + code + "']"));
     }
 
     public boolean isProceedEnabled() {

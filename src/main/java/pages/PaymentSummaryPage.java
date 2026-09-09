@@ -1,32 +1,35 @@
 package pages;
 
+import base.BasePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import base.BasePage;
 
 public class PaymentSummaryPage extends BasePage {
 
-    private By viewAllCouponsBtn = By.xpath("//button[contains(@class,'viewAllFooter')]");
-    private By applyCouponBtn = By.xpath("//button[contains(@class,'applyButton')]");
-    private By viewBillDetailsBtn = By.xpath("//button[contains(@class,'viewBillLink')]");
-    // In PaymentSummaryPage.java — fix the locator to point at the always-visible total
-    private By totalPayValue = By.xpath("//span[contains(@class,'styles_totalValue__V88sU')]");
-    private By closeviewbill = By.xpath("//button[@class='styles_closeButton__6UghF']");
-    private By tipTenButton = By.xpath("//button[contains(@class,'tipButton')][1]");
-    private By customTipButton = By.xpath("//button[contains(@class,'tipButton')][2]");
-    private By changepayment = By.xpath("//button[@class='styles_changeButton__9OJLM']");
-    private By debitorcredit = By.xpath("//span[contains(text(),'Debit/Credit Cards')]");
-    private By placeOrderButton = By.xpath("//button[contains(@class,'qsrPlaceOrderButton')]");
-    private By paymentIframe = By.xpath("//iframe[contains(@class,'paymentIframe')]");
-    private By cardNumberInput = By.xpath("//input[@placeholder='1234 1234 1234 1234']");
-    private By expiryInput = By.xpath("//input[@placeholder='MM/YY']");
-    private By cvvInput = By.xpath("//input[@placeholder='CVV']");
-    private By payButton = By.xpath("//button[contains(normalize-space(),'Pay AED')]");
-
+    private final By viewAllCouponsBtn = By.xpath("//button[contains(@class,'viewAllFooter')]");
+    private final By viewBillDetailsBtn = By.xpath("//button[contains(@class,'viewBillLink')]");
+    private final By totalPayValue = By.xpath("//span[contains(@class,'styles_totalValue__V88sU')]");
+    private final By closeViewBill = By.xpath("//button[@class='styles_closeButton__6UghF']");
+    private final By tipTenButton = By.xpath("//button[contains(@class,'tipButton')][1]");
+    private final By changePayment = By.xpath("//button[@class='styles_changeButton__9OJLM']");
+    private final By debitOrCredit = By.xpath("//span[contains(text(),'Debit/Credit Cards')]");
+    private final By placeOrderButton = By.xpath("//button[contains(@class,'qsrPlaceOrderButton')]");
+    private final By paymentIframe = By.xpath("//iframe[contains(@class,'paymentIframe')]");
+    private final By cardNumberInput = By.xpath("//input[@placeholder='1234 1234 1234 1234']");
+    private final By expiryInput = By.xpath("//input[@placeholder='MM/YY']");
+    private final By cvvInput = By.xpath("//input[@placeholder='CVV']");
+    private final By payButton = By.xpath("//button[contains(normalize-space(),'Pay AED')]");
 
     public PaymentSummaryPage(WebDriver driver) {
-
         super(driver);
+    }
+
+    public boolean isTotalDisplayed() {
+        return isDisplayed(totalPayValue);
+    }
+
+    public boolean isChangePaymentDisplayed() {
+        return isDisplayed(changePayment);
     }
 
     public void openViewAllCoupons() {
@@ -34,16 +37,18 @@ public class PaymentSummaryPage extends BasePage {
     }
 
     public void applyCoupon(String couponName) {
-        By couponApplyBtn = By.xpath(
+        click(By.xpath(
                 "//p[contains(@class,'offerTitle') and normalize-space()='" + couponName + "']"
                         + "/ancestor::div[contains(@class,'offerCard')]//button[contains(@class,'applyButton')]"
-        );
-        click(couponApplyBtn);
+        ));
     }
 
     public void openBillDetails() {
-
         click(viewBillDetailsBtn);
+    }
+
+    public void closeBillDetails() {
+        click(closeViewBill);
     }
 
     public String getTotalPay() {
@@ -58,29 +63,26 @@ public class PaymentSummaryPage extends BasePage {
         click(placeOrderButton);
     }
 
-    // Switches into the cross-origin payment iframe so subsequent finds target its content
+    public void clickChangePayment() {
+        click(changePayment);
+    }
+
+    public void selectDebitOrCreditCard() {
+        click(debitOrCredit);
+    }
+
     public void switchToPaymentFrame() {
-        driver.switchTo().frame(driver.findElement(paymentIframe));
+        wait.until(org.openqa.selenium.support.ui.ExpectedConditions.frameToBeAvailableAndSwitchToIt(paymentIframe));
     }
 
     public void switchBackToMainPage() {
         driver.switchTo().defaultContent();
     }
 
-
     public void enterCardDetails(String cardNumber, String expiry, String cvv) {
         type(cardNumberInput, cardNumber);
         type(expiryInput, expiry);
         type(cvvInput, cvv);
-    }
-    public void clickcloseviewbill() {
-        click(closeviewbill);
-    }
-    public void clickchangepayment() {
-        click(changepayment);
-    }
-    public void clickdebitorcredit() {
-        click(debitorcredit);
     }
 
     public OrderCompletionPage clickPayButton() {
@@ -88,5 +90,12 @@ public class PaymentSummaryPage extends BasePage {
         return new OrderCompletionPage(driver);
     }
 
-
+    public void payWithCard(String cardNumber, String expiry, String cvv) {
+        clickChangePayment();
+        selectDebitOrCreditCard();
+        switchToPaymentFrame();
+        enterCardDetails(cardNumber, expiry, cvv);
+        clickPayButton();
+        switchBackToMainPage();
+    }
 }

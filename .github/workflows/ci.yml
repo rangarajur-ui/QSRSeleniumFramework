@@ -20,19 +20,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: maven
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-      - name: Set headless mode for CI
-        run: sed -i 's/headless=false/headless=true/' config.properties
-
-      - name: Run tests
-        run: mvn clean test
+      - name: Run sanity suite (headless)
+        run: mvn clean test -DsuiteXmlFile=src/test/resources/suites/sanity.xml -Dbrowser=chrome -Dheadless=true -DtesterName="GitHub Actions" -Denvironment=QA
         continue-on-error: true
 
       - name: Upload Extent Report

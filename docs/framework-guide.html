@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QSR Framework Classroom — How everything works</title>
+  <style>
+    :root {
+      --ink: #1c1917;
+      --muted: #57534e;
+      --paper: #f7f3ec;
+      --card: #fffdf8;
+      --line: #e7e0d4;
+      --navy: #1e3a5f;
+      --navy-2: #2a5280;
+      --amber: #c2410c;
+      --amber-soft: #ffedd5;
+      --green: #166534;
+      --green-soft: #dcfce7;
+      --blue-soft: #e0f2fe;
+      --violet-soft: #ede9fe;
+      --sidebar: #14233a;
+      --sidebar-text: #e7e5e4;
+      --code: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    aside {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--sidebar);
+      color: var(--sidebar-text);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 18px 40px;
+    }
+
+    aside h1 {
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 0 0 6px;
+      color: #fdba74;
+    }
+
+    aside p.tag {
+      margin: 0 0 22px;
+      font-size: 13px;
+      color: #a8a29e;
+    }
+
+    aside a {
+      display: block;
+      color: #d6d3d1;
+      text-decoration: none;
+      font-size: 13.5px;
+      padding: 7px 10px;
+      border-radius: 6px;
+    }
+
+    aside a:hover, aside a.active {
+      background: #1e3a5f;
+      color: #fff;
+    }
+
+    aside .sec {
+      margin: 16px 0 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #a8a29e;
+      padding: 0 10px;
+    }
+
+    main { flex: 1; padding: 40px 48px 80px; max-width: 980px; }
+
+    h2 {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 32px;
+      color: var(--navy);
+      margin: 56px 0 12px;
+      line-height: 1.25;
+    }
+
+    h2:first-of-type { margin-top: 0; }
+
+    h3 {
+      font-size: 20px;
+      color: var(--navy-2);
+      margin: 32px 0 10px;
+    }
+
+    h4 { margin: 20px 0 8px; color: var(--ink); }
+
+    p { margin: 0 0 12px; }
+
+    .hero {
+      background: linear-gradient(135deg, #1e3a5f, #2a5280);
+      color: #fff;
+      padding: 36px 40px;
+      border-radius: 16px;
+      margin-bottom: 28px;
+    }
+
+    .hero h2 { color: #fff; margin: 0 0 10px; font-size: 36px; }
+    .hero p { color: #e7e5e4; font-size: 17px; max-width: 720px; }
+
+    .note, .remember, .connect, .warn {
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      border-left: 4px solid;
+    }
+
+    .note { background: var(--amber-soft); border-color: var(--amber); }
+    .remember { background: var(--green-soft); border-color: var(--green); }
+    .connect { background: var(--blue-soft); border-color: #0369a1; }
+    .warn { background: #fef3c7; border-color: #b45309; }
+
+    .note strong, .remember strong, .connect strong, .warn strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .flow {
+      display: grid;
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .flow-step {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .flow-step .num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .flow-step code { font-size: 13px; }
+
+    .arrow {
+      text-align: center;
+      color: var(--amber);
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 12px 0 20px;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th { background: #f3eee4; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 13px; white-space: nowrap; }
+
+    .tree {
+      background: var(--code);
+      color: #e5e7eb;
+      padding: 18px 20px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .folder { color: #93c5fd; }
+    .file { color: #fde68a; }
+    .comment { color: #9ca3af; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .card h4 { margin-top: 0; }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--violet-soft);
+      color: #5b21b6;
+      margin-right: 6px;
+    }
+
+    .pill.san { background: var(--green-soft); color: var(--green); }
+    .pill.reg { background: var(--blue-soft); color: #075985; }
+    .pill.e2e { background: var(--amber-soft); color: var(--amber); }
+
+    details {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin: 8px 0;
+      padding: 8px 14px;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: 6px 0;
+    }
+
+    code, .mono {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+
+    .map {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .map .box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .map .box b { display: block; color: var(--navy); margin-bottom: 4px; }
+
+    footer {
+      margin-top: 60px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .layout { display: block; }
+      aside { position: relative; height: auto; width: 100%; }
+      main { padding: 24px 18px 60px; }
+      .cards, .map { grid-template-columns: 1fr; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h1>QSR Classroom</h1>
+      <p class="tag">Teacher notes for freshers &amp; mid-level QA</p>
+
+      <div class="sec">Start here</div>
+      <a href="#welcome">1. Welcome</a>
+      <a href="#analogy">2. Simple analogy</a>
+      <a href="#folders">3. Folder map</a>
+      <a href="#connect">4. How folders connect</a>
+
+      <div class="sec">When you click Run</div>
+      <a href="#xml-start">5. If I run the XML…</a>
+      <a href="#one-test">6. One test, second by second</a>
+      <a href="#pom">7. Page Object Model</a>
+
+      <div class="sec">Every piece</div>
+      <a href="#root-files">8. Root files</a>
+      <a href="#base">9. base</a>
+      <a href="#config">10. config + constants</a>
+      <a href="#driver">11. driver</a>
+      <a href="#pages">12. pages (POM)</a>
+      <a href="#tests">13. Every test case</a>
+      <a href="#listener">14. listener + report</a>
+      <a href="#utils">15. utils + api</a>
+      <a href="#suites">16. TestNG XML suites</a>
+      <a href="#run">17. How to run</a>
+      <a href="#fail">18. When a test fails</a>
+    </aside>
+
+    <main>
+      <section class="hero" id="welcome">
+        <h2>You just joined this project. Sit down. We start from zero.</h2>
+        <p>
+          This page is a classroom, not a wiki dump. If you have 3 years of experience or you are a fresher,
+          you should be able to open this file, follow it top to bottom, and know
+          <b>what each folder is for, what each class does, how they talk to each other,
+          and exactly where execution starts</b> when you run a TestNG XML.
+        </p>
+      </section>
+
+      <div class="remember">
+        <strong>Remember this one sentence</strong>
+        Tests do not click buttons. Tests ask a <em>page class</em> to click. The page class asks <em>BasePage</em>
+        to find the element and wait. BasePage uses the browser that <em>DriverFactory</em> opened in <em>BaseTest.setUp()</em>.
+        That is the whole framework.
+      </div>
+
+      <h2 id="analogy">2. Simple analogy — a restaurant kitchen</h2>
+      <p>Think of the QSR app as a restaurant. Our framework is the kitchen staff.</p>
+      <div class="cards">
+        <div class="card">
+          <h4>XML suite = the order ticket</h4>
+          <p>It says which dishes (tests) to cook today: sanity, regression, or the full menu.</p>
+        </div>
+        <div class="card">
+          <h4>BaseTest = opening and closing the kitchen</h4>
+          <p>Before every dish: turn on the stove (browser). After every dish: turn it off.</p>
+        </div>
+        <div class="card">
+          <h4>Pages = stations</h4>
+          <p>Landing, Catalog, Customer, Payment, Order. Each station knows only its own tools (locators + methods).</p>
+        </div>
+        <div class="card">
+          <h4>Tests = the recipes</h4>
+          <p>“Add biryani, fill name, pay with card.” A recipe never says “find XPath.” It says “use the catalog station.”</p>
+        </div>
+      </div>
+
+      <h2 id="folders">3. Folder map — what is the use of each folder?</h2>
+      <p>Open the project in your IDE. You will see this. Read the comments on the right first.</p>
+      <div class="tree"><span class="folder">QSRSeleniumFramework/</span>
+├── <span class="file">config.properties</span>          <span class="comment"># all data: URL, browser, tester, card, item name</span>
+├── <span class="file">pom.xml</span>                    <span class="comment"># Maven: libraries + how to run TestNG</span>
+├── <span class="file">testng.xml</span>                 <span class="comment"># default “run everything” ticket</span>
+├── <span class="file">Jenkinsfile</span>                <span class="comment"># CI machine reads this to run tests</span>
+├── <span class="file">README.md</span>                  <span class="comment"># short how-to</span>
+├── <span class="folder">docs/</span>
+│   └── <span class="file">framework-guide.html</span>    <span class="comment"># THIS classroom (you are here)</span>
+└── <span class="folder">src/</span>
+    ├── <span class="folder">main/java/</span>               <span class="comment"># framework code (not tests)</span>
+    │   ├── <span class="folder">base/</span>                  <span class="comment"># parent classes every page/test uses</span>
+    │   ├── <span class="folder">config/</span>                <span class="comment"># reads config.properties</span>
+    │   ├── <span class="folder">constants/</span>             <span class="comment"># TestData names used in tests</span>
+    │   ├── <span class="folder">driver/</span>                <span class="comment"># opens / closes Chrome</span>
+    │   ├── <span class="folder">pages/</span>                 <span class="comment"># one class = one screen (POM)</span>
+    │   ├── <span class="folder">listeners/</span>             <span class="comment"># writes the Extent HTML report</span>
+    │   ├── <span class="folder">reports/</span>               <span class="comment"># Extent report engine</span>
+    │   ├── <span class="folder">utils/</span>                 <span class="comment"># screenshot, QR, step logger</span>
+    │   └── <span class="folder">api/</span>                   <span class="comment"># catalog API (no browser)</span>
+    └── <span class="folder">test/</span>
+        ├── <span class="folder">java/tests/</span>            <span class="comment"># the actual test cases</span>
+        └── <span class="folder">resources/suites/</span>     <span class="comment"># sanity / regression / e2e XML</span></div>
+
+      <table>
+        <thead>
+          <tr><th>Folder / file</th><th>What is the use?</th><th>Who uses it?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>config.properties</td><td>Single place for browser, URLs, waits, tester name, environment, customer, menu item, test card.</td><td>ConfigReader, then everyone</td></tr>
+          <tr><td>src/main/java/base</td><td>Shared parents. BasePage = click/type/wait. BaseTest = open/close browser.</td><td>Every page, every UI test</td></tr>
+          <tr><td>src/main/java/pages</td><td>Locators + actions for one screen. Tests never store XPaths.</td><td>Test classes</td></tr>
+          <tr><td>src/main/java/driver</td><td>Create Chrome / Firefox / Edge. One browser per test thread.</td><td>BaseTest.setUp / tearDown</td></tr>
+          <tr><td>src/main/java/config</td><td>Read a key from file, or from Jenkins <code>-Dkey=value</code>.</td><td>Driver, BaseTest, reports</td></tr>
+          <tr><td>src/main/java/constants</td><td>Friendly names: <code>TestData.MENU_ITEM</code> instead of a long string in every test.</td><td>Tests</td></tr>
+          <tr><td>src/main/java/listeners</td><td>Hook into TestNG: test started / passed / failed. Writes the report.</td><td>TestNG XML &lt;listeners&gt;</td></tr>
+          <tr><td>src/main/java/reports</td><td>Builds <code>reports/ExtentReport.html</code> with tester, env, steps, screenshots.</td><td>TestListener, ReportLogger</td></tr>
+          <tr><td>src/main/java/utils</td><td>Helpers that are not a page: screenshot, QR decode, log a step.</td><td>BaseTest, tests, listener</td></tr>
+          <tr><td>src/main/java/api</td><td>Call the catalog REST API. Used to compare API price vs UI price.</td><td>CatalogApiTest</td></tr>
+          <tr><td>src/test/java/tests</td><td>The cases you run. One class per area of the product.</td><td>TestNG XML</td></tr>
+          <tr><td>src/test/resources/suites</td><td>XML tickets: sanity, regression, e2e, full-suite.</td><td>Maven / Jenkins</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="connect">4. How folders connect (the wiring)</h2>
+      <p>Do not memorize 20 classes. Memorize this chain. Everything hangs off it.</p>
+      <div class="map">
+        <div class="box"><b>XML</b>picks test classes and groups. Also starts TestListener.</div>
+        <div class="box"><b>Test class</b>extends BaseTest. Calls page methods. Asserts.</div>
+        <div class="box"><b>BaseTest</b>opens browser, decodes QR, gives you landingPage.</div>
+        <div class="box"><b>Page class</b>holds locators. Calls BasePage.click / type / getText.</div>
+        <div class="box"><b>BasePage</b>waits until the element is ready, then clicks it.</div>
+        <div class="box"><b>DriverFactory</b>is the actual Chrome window.</div>
+        <div class="box"><b>ConfigReader</b>feeds URL, waits, browser name to the others.</div>
+        <div class="box"><b>ReportLogger</b>writes Step 1, Step 2 into Extent.</div>
+        <div class="box"><b>TestListener</b>starts/ends each report row and attaches fail screenshots.</div>
+      </div>
+
+      <div class="connect">
+        <strong>Connected how? (imports you will see)</strong>
+        <code>FullOrderFlowTest</code> → extends <code>base.BaseTest</code><br>
+        <code>BaseTest</code> → uses <code>driver.DriverFactory</code>, <code>config.ConfigReader</code>, <code>utils.QRCodeReader</code>, <code>pages.LandingPage</code><br>
+        <code>CatalogPage</code> → extends <code>base.BasePage</code><br>
+        <code>sanity.xml</code> → listener <code>listeners.TestListener</code> → <code>reports.ExtentReportManager</code>
+      </div>
+
+      <h2 id="xml-start">5. If I run the XML — from where does it start?</h2>
+      <p>
+        This is the question everyone asks on day one. You do <b>not</b> start inside a page class.
+        You start at the XML. The XML is only a list. TestNG reads the list, then the real Java begins.
+      </p>
+      <p>Example command:</p>
+      <div class="tree">mvn clean test -DsuiteXmlFile=src/test/resources/suites/sanity.xml</div>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="num">1</div>
+          <div>
+            <b>Maven wakes up (<code>pom.xml</code>)</b>
+            <p>Surefire plugin sees <code>suiteXmlFile</code> and starts TestNG. Libraries (Selenium, TestNG, Extent) are already on the classpath.</p>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="flow-step">
+          <div class="num">2</div>
+          <div>
+            <b>TestNG reads <code>sanity.xml</code></b>
+            <p>It sees the listener <code>listeners.TestListener</code>, the group <code>sanity</code>, and the class list:
+            CatalogApiHealthTest, LandingPageTest, CatalogPageTest, CustomerDetailsTest, PaymentSummaryTest.</p>
+            <p>Only methods tagged <code>@Test(groups = {"sanity", ...})</code> will run. Regression methods in the same class are skipped.</p>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="flow-step">
+          <div class="num">3</div>
+          <div>
+            <b>Suite starts → <code>TestListener.onStart()</code></b>
+            <p>Extent report file is created: <code>reports/ExtentReport.html</code>. Tester name, environment, browser, OS, Java are written at the top of the report.</p>
+          </div>
+        </div>
+        <div class="arrow">↓  now TestNG loops: for each @Test method</div>
+        <div class="flow-step">
+          <div class="num">4</div>
+          <div>
+            <b><code>TestListener.onTestStart()</code></b>
+            <p>A new row in the report. Author = tester name. Category = group (sanity). Device = chrome. Description comes from the <code>@Test(description = "...)</code>.</p>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="flow-step">
+          <div class="num">5</div>
+          <div>
+            <b><code>BaseTest.setUp()</code> — this is <code>@BeforeMethod</code></b>
+            <p>This runs <em>before every test method</em>, automatically. You do not call it. TestNG calls it because the test class <code>extends BaseTest</code>.</p>
+            <ol>
+              <li><code>DriverFactory.getDriver()</code> → opens Chrome at the mobile size from config.</li>
+              <li><code>ConfigReader.getProperty("qrCodeUrl")</code> → image URL of the table QR.</li>
+              <li><code>QRCodeReader.readQRFromUrl(...)</code> → decodes the QR into the real catalog link.</li>
+              <li><code>driver.get(catalogUrl)</code> → browser opens that link.</li>
+              <li><code>landingPage = new LandingPage(driver)</code> → first page object is ready.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="flow-step">
+          <div class="num">6</div>
+          <div>
+            <b>Your test method finally runs</b>
+            <p>Example: <code>verifyCanAddItemToCart()</code>. It calls <code>openCatalog()</code>, then <code>catalogPage.addItemToCart(...)</code>, then <code>Assert.assertEquals</code>.</p>
+            <p>When the page method says <code>click(addButton)</code>, that is <code>BasePage.click</code>: wait until clickable → find element → click (or JS click if something overlays it).</p>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="flow-step">
+          <div class="num">7</div>
+          <div>
+            <b><code>BaseTest.tearDown()</code> — this is <code>@AfterMethod</code></b>
+            <p><code>DriverFactory.quitDriver()</code> closes Chrome. Next test gets a fresh browser. That is why tests do not pollute each other.</p>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="flow-step">
+          <div class="num">8</div>
+          <div>
+            <b>Listener writes the result</b>
+            <p>Pass → green line in Extent. Fail → red line + exception + screenshot from <code>ScreenshotUtils</code>. Skip → orange.</p>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="flow-step">
+          <div class="num">9</div>
+          <div>
+            <b>Suite finished → <code>TestListener.onFinish()</code></b>
+            <p><code>ExtentReportManager.flush()</code> saves the HTML. Open <code>reports/ExtentReport.html</code> in a browser. That is your evidence.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Teacher says</strong>
+        If you put a breakpoint, put the first one in <code>BaseTest.setUp()</code>, not in the XML.
+        The XML has no Java. It only points. The first Java that always runs for a UI test is <code>setUp()</code>.
+      </div>
+
+      <h2 id="one-test">6. One test, second by second (full order)</h2>
+      <p>You run only e2e:</p>
+      <div class="tree">mvn clean test -DsuiteXmlFile=src/test/resources/suites/e2e.xml</div>
+      <p><code>e2e.xml</code> includes group <code>e2e</code> and class <code>tests.FullOrderFlowTest</code>. That class has one method: <code>verifyFullOrderFlowEndToEnd</code>.</p>
+
+      <table>
+        <thead>
+          <tr><th>Clock</th><th>Who is running</th><th>What happens on the screen / in code</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0</td><td>TestNG + Listener</td><td>Report row created. Tester + environment logged.</td></tr>
+          <tr><td>1</td><td>BaseTest.setUp</td><td>Chrome opens. QR decoded. Catalog URL loaded. <code>landingPage</code> ready.</td></tr>
+          <tr><td>2</td><td>openCatalog()</td><td>If welcome screen exists → click Start Your Order. Else catalog is already there (table has an active session).</td></tr>
+          <tr><td>3</td><td>CatalogPage</td><td>Read price, click Add, assert quantity is 1.</td></tr>
+          <tr><td>4</td><td>clickViewCart()</td><td>Returns a <code>CustomerDetailsPage</code>. This is how pages are chained.</td></tr>
+          <tr><td>5</td><td>CustomerDetailsPage</td><td>Proceed is disabled. Fill name + mobile from TestData. Proceed enables.</td></tr>
+          <tr><td>6</td><td>clickProceed()</td><td>Returns <code>PaymentSummaryPage</code>.</td></tr>
+          <tr><td>7</td><td>PaymentSummaryPage</td><td>Open bill, read total, close bill, add AED 10 tip.</td></tr>
+          <tr><td>8</td><td>Payment iframe</td><td>Change payment → Debit/Credit → switch into iframe → type test card → Pay.</td></tr>
+          <tr><td>9</td><td>OrderCompletionPage</td><td>Wait for order ID and brand name. Open bill. Pass.</td></tr>
+          <tr><td>10</td><td>tearDown + listener</td><td>Browser closes. Report flushed.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="remember">
+        <strong>Why does a page method return another page?</strong>
+        Because that is how a real user walks. View Cart takes you to customer details.
+        So <code>clickViewCart()</code> returns <code>new CustomerDetailsPage(driver)</code>.
+        The test does not guess the next screen. The page tells you.
+      </div>
+
+      <h2 id="pom">7. Page Object Model — in student words</h2>
+      <p><b>Wrong way</b> (do not do this in a test):</p>
+      <div class="tree">driver.findElement(By.xpath("//button[...]")).click();</div>
+      <p><b>Right way</b> (what we do):</p>
+      <div class="tree">catalogPage.addItemToCart(TestData.MENU_ITEM);</div>
+      <p>If the XPath changes tomorrow, you fix it in <code>CatalogPage</code> once. Twenty tests stay untouched. That is the use of POM.</p>
+      <p>Rule of this project:</p>
+      <ul>
+        <li>XPath / id / css live only in <code>pages/</code>.</li>
+        <li>Wait + click + type live only in <code>BasePage</code>.</li>
+        <li>Asserts and steps live in <code>tests/</code>.</li>
+        <li>URLs and names live in <code>config.properties</code>.</li>
+      </ul>
+
+      <h2 id="root-files">8. Root files — what is the use?</h2>
+
+      <details open>
+        <summary>config.properties</summary>
+        <p>The brain of data. Change the menu item name here, every test picks it up. Jenkins can override any key:</p>
+        <div class="tree">mvn test -Dbrowser=chrome -Dheadless=true -DtesterName="Rangaraju R" -Denvironment=QA</div>
+        <p>Useful keys: <code>browser</code>, <code>headless</code>, <code>environment</code>, <code>testerName</code>, <code>qrCodeUrl</code>, <code>explicitWait</code>, <code>menuItem</code>, <code>cardNumber</code>.</p>
+      </details>
+
+      <details>
+        <summary>pom.xml</summary>
+        <p>Maven shopping list + run instructions. Selenium, TestNG, Extent, Rest Assured, WebDriverManager live here.
+        Surefire says: “run this XML.” Default is <code>testng.xml</code>. Jenkins passes another XML with <code>-DsuiteXmlFile=...</code>.</p>
+      </details>
+
+      <details>
+        <summary>testng.xml</summary>
+        <p>Default full suite. First runs all <code>sanity</code> methods, then all <code>regression</code> methods (that includes the payment e2e). Sequential, not parallel — one table QR is shared.</p>
+      </details>
+
+      <details>
+        <summary>Jenkinsfile</summary>
+        <p>A Jenkins job reads this instead of you typing Maven. You pick suite, browser, tester name, environment.
+        After the run it archives <code>reports/</code> and publishes Extent as HTML.</p>
+      </details>
+
+      <h2 id="base">9. Folder <code>base</code> — the parents</h2>
+      <p>Two classes. If you understand these, you understand 70% of the framework.</p>
+
+      <h3>Class <code>BasePage</code> — use: every page’s toolbox</h3>
+      <p><b>Connected to:</b> all classes in <code>pages/</code> (they <code>extend BasePage</code>). Uses <code>ConfigReader</code> for wait time.</p>
+      <table>
+        <thead><tr><th>Method</th><th>What is the use?</th></tr></thead>
+        <tbody>
+          <tr><td>click(locator)</td><td>Wait until the element is clickable, then click. If a popup blocks it, click with JavaScript.</td></tr>
+          <tr><td>type(locator, text)</td><td>Wait until visible, clear the field, type the text.</td></tr>
+          <tr><td>getText(locator)</td><td>Wait until visible, return the text (price, order id, welcome message).</td></tr>
+          <tr><td>scrollIntoView(locator)</td><td>Scroll the element to the center. Used before View Cart.</td></tr>
+          <tr><td>isDisplayed(locator)</td><td>True if it becomes visible before timeout. False if not. No crash.</td></tr>
+          <tr><td>isPresent(locator)</td><td>True if it exists in the DOM right now (no long wait). Used for “is welcome shown?”</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <strong>You will not call these from a test</strong>
+        They are <code>protected</code>. Only page classes call them. That is on purpose.
+      </div>
+
+      <h3>Class <code>BaseTest</code> — use: every UI test’s setup</h3>
+      <p><b>Connected to:</b> every test class except the pure API health check. Uses DriverFactory, ConfigReader, QRCodeReader, LandingPage, ReportLogger.</p>
+      <table>
+        <thead><tr><th>Method</th><th>When does it run?</th><th>What is the use?</th></tr></thead>
+        <tbody>
+          <tr><td>setUp()</td><td>Automatically, before each @Test</td><td>Open browser, decode QR, open catalog URL, create LandingPage.</td></tr>
+          <tr><td>tearDown()</td><td>Automatically, after each @Test</td><td>Quit browser.</td></tr>
+          <tr><td>openCatalog()</td><td>You call it in the test</td><td>Handle welcome screen vs already-open catalog. Returns CatalogPage.</td></tr>
+          <tr><td>goToPaymentSummary()</td><td>You call it in payment tests</td><td>Shortcut: add item + fill customer + proceed. So payment tests do not repeat 15 lines.</td></tr>
+          <tr><td>logStep(message)</td><td>You call it</td><td>Writes “Step 1 — …” into the Extent report.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="config">10. <code>config</code> and <code>constants</code></h2>
+
+      <h3>Class <code>ConfigReader</code></h3>
+      <p><b>Use:</b> <code>ConfigReader.getProperty("browser")</code> returns <code>chrome</code> from the file, unless Jenkins passed <code>-Dbrowser=firefox</code>. System property always wins.</p>
+      <table>
+        <thead><tr><th>Method</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td>getProperty(key)</td><td>String value. Throws if the key does not exist — so typos fail fast.</td></tr>
+          <tr><td>getProperty(key, default)</td><td>Same, but returns a default if missing.</td></tr>
+          <tr><td>getInt(key)</td><td>For waits and viewport size.</td></tr>
+          <tr><td>getBoolean(key)</td><td>For <code>headless=true/false</code>.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Class <code>TestData</code></h3>
+      <p><b>Use:</b> tests say <code>TestData.MENU_ITEM</code> instead of typing “Chicken Tikka Biryani (Boneless)” ten times. Values still come from config.</p>
+
+      <h2 id="driver">11. Folder <code>driver</code></h2>
+      <h3>Class <code>DriverFactory</code></h3>
+      <p><b>Use:</b> the only place that talks to ChromeDriver. ThreadLocal means if two tests ever run in parallel, each thread has its own browser.</p>
+      <table>
+        <thead><tr><th>Method</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td>getDriver()</td><td>Create browser if missing, then return it. Called from setUp.</td></tr>
+          <tr><td>getDriverIfPresent()</td><td>Return the browser only if it already exists. Listener uses this so a failed API test does not suddenly open Chrome for a screenshot.</td></tr>
+          <tr><td>quitDriver()</td><td>Close browser and clean the thread. Called from tearDown.</td></tr>
+        </tbody>
+      </table>
+      <p>It also applies <code>deviceWidth</code> × <code>deviceHeight</code> because this product is a phone-first table QR flow, not a desktop site.</p>
+
+      <h2 id="pages">12. Folder <code>pages</code> — one class, one screen</h2>
+      <p>Every page: constructor takes <code>WebDriver</code>, calls <code>super(driver)</code> so BasePage waits work.</p>
+
+      <details open>
+        <summary>LandingPage — first screen after the QR (welcome / table)</summary>
+        <p><b>Used by:</b> BaseTest (creates it), LandingPageTest, and <code>openCatalog()</code>.</p>
+        <table>
+          <thead><tr><th>Method</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>isWelcomeScreenDisplayed()</td><td>Is the “table” welcome headline there? If the table already has an order, this is false.</td></tr>
+            <tr><td>getWelcomeMessage()</td><td>Read the headline text so we can assert it mentions a table.</td></tr>
+            <tr><td>isStartOrderButtonDisplayed()</td><td>Is Start Your Order visible?</td></tr>
+            <tr><td>clickStartYourOrder()</td><td>Click it. Returns CatalogPage (next screen).</td></tr>
+            <tr><td>goToWelcomeSlide()</td><td>Tap the second pagination dot if the carousel is not on the welcome slide.</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <details>
+        <summary>CatalogPage — menu, prices, add, search, cart bar</summary>
+        <p><b>Used by:</b> almost every UI test after openCatalog().</p>
+        <table>
+          <thead><tr><th>Method</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>getRestaurantName / getRestaurantAddress</td><td>Sanity: catalog actually loaded.</td></tr>
+            <tr><td>isSearchDisplayed / searchMenu</td><td>Type in “Search menu...”.</td></tr>
+            <tr><td>selectCategory(name)</td><td>Tap a category tab.</td></tr>
+            <tr><td>isItemDisplayed / getItemPrice</td><td>Is the dish on the menu, and what does the UI say it costs?</td></tr>
+            <tr><td>addItemToCart</td><td>Click Add on that item card.</td></tr>
+            <tr><td>increaseQuantity / decreaseQuantity / getItemQuantity</td><td>Plus, minus, read the number.</td></tr>
+            <tr><td>isCartSummaryBarDisplayed / getCartItemCountText / clickViewCart</td><td>Bottom cart bar. View Cart → CustomerDetailsPage.</td></tr>
+            <tr><td>isItemCustomizable / openItemCustomization / selectCustomizationOption / clickAddItemInPopup / closeCustomizationPopup</td><td>Items that have add-ons.</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <details>
+        <summary>CustomerDetailsPage — name, mobile, Proceed</summary>
+        <p><b>Used by:</b> CustomerDetailsTest, FullOrderFlowTest, and <code>goToPaymentSummary()</code>.</p>
+        <table>
+          <thead><tr><th>Method</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>isNameFieldDisplayed()</td><td>Are we on this screen?</td></tr>
+            <tr><td>enterName / enterMobileNumber</td><td>Type into the two fields.</td></tr>
+            <tr><td>fillCustomerDetails(name, mobile)</td><td>Both fields in one call. Prefer this in tests.</td></tr>
+            <tr><td>selectCountryCode</td><td>Open the country list and pick a code.</td></tr>
+            <tr><td>isProceedEnabled()</td><td>Button starts disabled. Must become enabled after valid input.</td></tr>
+            <tr><td>clickProceed()</td><td>Go to payment. Returns PaymentSummaryPage.</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <details>
+        <summary>PaymentSummaryPage — total, tip, bill, card iframe</summary>
+        <p><b>Used by:</b> PaymentSummaryTest and FullOrderFlowTest.</p>
+        <table>
+          <thead><tr><th>Method</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>isTotalDisplayed / getTotalPay</td><td>Read the payable amount.</td></tr>
+            <tr><td>openBillDetails / closeBillDetails</td><td>Bill drawer.</td></tr>
+            <tr><td>selectTenDirhamTip</td><td>First tip chip (AED 10).</td></tr>
+            <tr><td>openViewAllCoupons / applyCoupon</td><td>Offers (ready when you have a coupon name).</td></tr>
+            <tr><td>clickChangePayment / selectDebitOrCreditCard / isChangePaymentDisplayed</td><td>Switch method to card.</td></tr>
+            <tr><td>switchToPaymentFrame / switchBackToMainPage</td><td>Card fields live inside an iframe. You must switch in, then back.</td></tr>
+            <tr><td>enterCardDetails / clickPayButton / payWithCard</td><td>Sandbox card from config. Never a real card.</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <details>
+        <summary>OrderCompletionPage — “thank you” after pay</summary>
+        <p><b>Used by:</b> FullOrderFlowTest only (the true e2e).</p>
+        <table>
+          <thead><tr><th>Method</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>waitForOrderCompletion()</td><td>Wait until order id is visible. Payment is not instant.</td></tr>
+            <tr><td>getBrandName / isBrandNameDisplayed</td><td>Restaurant name on the receipt.</td></tr>
+            <tr><td>getOrderId()</td><td>The number we print in the report. This is your proof the order landed.</td></tr>
+            <tr><td>openBillDetails()</td><td>Open bill on the confirmation screen.</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <h2 id="tests">13. Folder <code>tests</code> — every test case explained</h2>
+      <p>A test class is not a page. It is a list of checks. Naming rule: <code>verifyThingHappened</code>.</p>
+
+      <h3>LandingPageTest</h3>
+      <table>
+        <thead><tr><th>Test</th><th>Group</th><th>What is the use of this test?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>verifyWelcomeMessageShowsTableInfo</td>
+            <td><span class="pill san">sanity</span></td>
+            <td>Confirms the QR opened the right table welcome. If the table already has an active order, TestNG marks it SKIP (not fail) — that is expected.</td>
+          </tr>
+          <tr>
+            <td>verifyStartOrderOpensCatalog</td>
+            <td><span class="pill san">sanity</span></td>
+            <td>The most basic happy path: can the guest reach the menu? Asserts restaurant name is not empty.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>CatalogPageTest</h3>
+      <table>
+        <thead><tr><th>Test</th><th>Group</th><th>What is the use of this test?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>verifyCanAddItemToCart</td>
+            <td><span class="pill san">sanity</span></td>
+            <td>Core money path. If Add is broken, nobody can order. Asserts quantity becomes 1.</td>
+          </tr>
+          <tr>
+            <td>verifyQuantityIncreaseAndDecrease</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>Plus → 2, minus → 1. Catches broken quantity controls after UI changes.</td>
+          </tr>
+          <tr>
+            <td>verifyCartSummaryBarAfterAdd</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>Bottom bar must appear so the guest can go to checkout.</td>
+          </tr>
+          <tr>
+            <td>verifyMenuSearch</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>Search “Biryani” and the known item must still be listed.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>CustomerDetailsTest</h3>
+      <table>
+        <thead><tr><th>Test</th><th>Group</th><th>What is the use of this test?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>verifyProceedDisabledUntilDetailsFilled</td>
+            <td><span class="pill san">sanity</span></td>
+            <td>Empty form = Proceed off. Name + mobile = Proceed on. Protects against placing an order with no guest info.</td>
+          </tr>
+          <tr>
+            <td>verifyNameAloneDoesNotEnableProceed</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>Name without mobile must stay blocked. A common validation bug.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>PaymentSummaryTest</h3>
+      <p>These stop <em>before</em> paying. Safer to run often. They use <code>goToPaymentSummary()</code> from BaseTest.</p>
+      <table>
+        <thead><tr><th>Test</th><th>Group</th><th>What is the use of this test?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>verifyPaymentSummaryShowsTotal</td>
+            <td><span class="pill san">sanity</span></td>
+            <td>After details, a payable total must be visible. If this is blank, checkout is dead.</td>
+          </tr>
+          <tr>
+            <td>verifyBillDetailsCanBeOpened</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>Guest can open and close the bill drawer.</td>
+          </tr>
+          <tr>
+            <td>verifyTenDirhamTipCanBeAdded</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>Tip chip is clickable and total remains visible.</td>
+          </tr>
+          <tr>
+            <td>verifyChangePaymentToCard</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>Change payment → Debit/Credit Cards. Does not enter the card. That is e2e’s job.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>FullOrderFlowTest</h3>
+      <table>
+        <thead><tr><th>Test</th><th>Group</th><th>What is the use of this test?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>verifyFullOrderFlowEndToEnd</td>
+            <td><span class="pill e2e">e2e</span> <span class="pill reg">regression</span></td>
+            <td>The business proof. Catalog → customer → tip → sandbox card → order id. If only one test can run before a release, run this.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>CatalogApiHealthTest <span class="pill">no browser</span></h3>
+      <table>
+        <thead><tr><th>Test</th><th>Group</th><th>What is the use of this test?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>verifyCatalogApiIsHealthy</td>
+            <td><span class="pill san">sanity</span></td>
+            <td>Does not extend BaseTest. Hits the catalog API. 200 + restaurant name. If this fails, the UI tests will fail too — start here when the env is down.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>CatalogApiTest</h3>
+      <table>
+        <thead><tr><th>Test</th><th>Group</th><th>What is the use of this test?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>verifyItemPriceMatchesBetweenApiAndUi</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>API says 33.00, UI must say AED 33.00. Catches “backend changed, frontend still old.”</td>
+          </tr>
+          <tr>
+            <td>verifyCustomizableFlagMatchesUi</td>
+            <td><span class="pill reg">regression</span></td>
+            <td>If API says customizable, the UI must show the customisable label.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="listener">14. Listener + Extent report</h2>
+      <p>You never call the listener. TestNG calls it because the XML has:</p>
+      <div class="tree">&lt;listener class-name="listeners.TestListener"/&gt;</div>
+
+      <h3>Class <code>TestListener</code></h3>
+      <table>
+        <thead><tr><th>Method</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td>onStart</td><td>Create the report once for the whole suite.</td></tr>
+          <tr><td>onTestStart</td><td>New test node. Write tester, environment, browser, class, groups.</td></tr>
+          <tr><td>onTestSuccess</td><td>Mark PASS.</td></tr>
+          <tr><td>onTestFailure</td><td>Mark FAIL, print exception, attach screenshot if a browser exists.</td></tr>
+          <tr><td>onTestSkipped</td><td>Mark SKIP (welcome screen already used, or a dependsOn failure).</td></tr>
+          <tr><td>onFinish</td><td>Save the HTML file.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Class <code>ExtentReportManager</code></h3>
+      <p><b>Use:</b> the engine behind the pretty report. System info: tester, environment, application, browser, headless, base URL, OS, Java, time.</p>
+      <table>
+        <thead><tr><th>Method</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td>startTest / getTest / endTest</td><td>One report node per TestNG method. ThreadLocal = safe if we add parallel later.</td></tr>
+          <tr><td>step / info / pass / fail / skip</td><td>The words you see in the report.</td></tr>
+          <tr><td>addScreenCapture</td><td>Attach PNG next to a step.</td></tr>
+          <tr><td>flush</td><td>Write the file to disk. Without this the HTML is empty.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="connect">
+        <strong>Where do I see tester name and steps?</strong>
+        Dashboard header = system info from ExtentReportManager.<br>
+        Each test left side = method name + groups.<br>
+        Inside a test = Step 1, Step 2 from <code>logStep()</code> / <code>ReportLogger</code>.
+      </div>
+
+      <h2 id="utils">15. <code>utils</code> and <code>api</code></h2>
+
+      <h3>ReportLogger</h3>
+      <p><b>Use:</b> tests should not talk to Extent APIs. They say <code>ReportLogger.step("Add item")</code>, <code>pass(...)</code>, <code>screenshot(driver, "name")</code>.</p>
+
+      <h3>ScreenshotUtils</h3>
+      <p><b>Use:</b> saves PNG under <code>reports/screenshots/</code>. Listener uses it on failure. Tests use it for important steps.</p>
+
+      <h3>QRCodeReader</h3>
+      <p><b>Use:</b> the product starts from a table QR image, not a typed URL. <code>readQRFromUrl</code> downloads the image and decodes the link. That is why setUp does not use <code>baseUrl</code> alone.</p>
+
+      <h3>CatalogApiClient</h3>
+      <p><b>Use:</b> POST to <code>catalogApiBaseUrl + catalogApiPath + qrScanCode</code>. Helpers: item price, customizable flag, in stock, restaurant name, table number. Used so UI and API can be compared.</p>
+
+      <h2 id="suites">16. TestNG XML suites — which ticket do I hand the kitchen?</h2>
+      <table>
+        <thead><tr><th>File</th><th>What it runs</th><th>When you use it</th></tr></thead>
+        <tbody>
+          <tr><td>suites/sanity.xml</td><td>Only <code>sanity</code> methods</td><td>Every pull request / morning check. Fastest.</td></tr>
+          <tr><td>suites/regression.xml</td><td>Only <code>regression</code> (includes full payment)</td><td>Before a release.</td></tr>
+          <tr><td>suites/e2e.xml</td><td>Only the card-payment flow</td><td>When you only care “can we pay?”</td></tr>
+          <tr><td>suites/full-suite.xml or testng.xml</td><td>Sanity block, then regression block</td><td>Default <code>mvn test</code>.</td></tr>
+        </tbody>
+      </table>
+      <div class="warn">
+        <strong>Why not parallel?</strong>
+        All UI tests scan the same table QR. If two tests order at once, the welcome screen and cart fight each other.
+        So suites are sequential. Do not turn on <code>parallel="methods"</code> until we have many QRs.
+      </div>
+
+      <h2 id="run">17. How to run — copy these</h2>
+      <div class="tree"># everything (testng.xml)
+mvn clean test
+
+# sanity only
+mvn clean test -DsuiteXmlFile=src/test/resources/suites/sanity.xml
+
+# one class from IDE
+# Right-click LandingPageTest → Run
+# Still goes: Listener → BaseTest.setUp → your method → tearDown
+
+# Jenkins-style overrides
+mvn clean test -Dheadless=true -DtesterName="Your Name" -Denvironment=QA</div>
+      <p>After the run, open <code>reports/ExtentReport.html</code>. That is the file you attach in a bug or a release mail.</p>
+
+      <h2 id="fail">18. When a test fails — where do you look? (teacher order)</h2>
+      <ol>
+        <li><b>Extent report</b> — which step was last green? The next step is the suspect.</li>
+        <li><b>Screenshot</b> — what was actually on screen?</li>
+        <li><b>Was it setUp?</b> — QR decode fail, env down, Chrome not opening. You never reached the test body.</li>
+        <li><b>Was it a locator?</b> — fix the page class, not the test.</li>
+        <li><b>Was it test data?</b> — item renamed on the menu? Change <code>config.properties</code>.</li>
+        <li><b>Was it the shared table?</b> — welcome skipped, old cart. Re-run once before you log a product bug.</li>
+      </ol>
+
+      <div class="remember">
+        <strong>If you remember only one path, remember this</strong>
+        XML → TestListener → BaseTest.setUp (browser + QR) → your @Test → page method → BasePage.find/click → tearDown → Extent flush.
+      </div>
+
+      <footer>
+        QSR Selenium Framework classroom guide · open this file any time:
+        <span class="mono">docs/framework-guide.html</span>
+        · code can change; if a method is renamed, update this page in the same PR.
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const links = document.querySelectorAll("aside a");
+    const sections = [...links].map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+
+    function setActive() {
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= 90) current = section;
+      }
+      links.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + current.id));
+    }
+
+    document.addEventListener("scroll", setActive, { passive: true });
+    setActive();
+  </script>
+</body>
+</html>
